@@ -5,7 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 import datetime as dt
-#from time import sleep
+from time import sleep
 from random import randrange #, choice
 from urllib.request import urlretrieve
 import pandas as pd
@@ -40,6 +40,10 @@ class RedfinScraper():
         logging.info('Signing into Redfin')
         driver.get('https://www.redfin.com/login-v2')
 
+        WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, '.submit-button'))
+                )
+
         signon = WebDriverWait(driver, 10).until(
                         EC.element_to_be_clickable((By.NAME,'emailInput')))
         signon.send_keys(username)
@@ -50,6 +54,7 @@ class RedfinScraper():
         signon.send_keys(password)
         signon.submit()
 
+        sleep(5) #wait to login
 
     #Get CSVs
     def Sales_Data(self, rf_house_path, City, ZipCode):
@@ -57,8 +62,8 @@ class RedfinScraper():
 
         driver = self.driver
 
-        logging.info('Scraping Sales Data')
-        logging.info(str(ZipCode)+":\n"+str(rf_house_path))
+        
+        logging.debug(str(ZipCode)+":\n"+str(rf_house_path))
         #time.sleep(2) 
 
         try:
@@ -83,14 +88,13 @@ class RedfinScraper():
             return filename
 
         except:
-            logging.info('...Error Obtaining Data...')
+            logging.debug('...Error Obtaining Data...')
             return False
 
     def MLS_Data(self, url):
         '''Uses the URLs from Sales Data to get MLS & School data (from Redfin's API) on each individual page (slow)'''
         driver = self.driver
 
-        logging.info('Scraping MLS Data (slow)')
         #sleep(randint(0, 2))
         property_id = re.search('([^\/]+$)',url)[0]
 

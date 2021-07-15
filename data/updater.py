@@ -10,7 +10,7 @@ import datetime as dt
 from functions.selenium_funcs import RedfinScraper
 from resources.redfin_login import rf_username, rf_password
 from functions.cleaning import sales_clean, mls_clean
-#%%
+
 class RedfinData():
     
     def __init__(self):
@@ -20,7 +20,7 @@ class RedfinData():
         #Current Directory
         self.dir = os.path.dirname(__file__)
 
-        self.scraper = RedfinScraper(headless=False)
+        self.scraper = RedfinScraper(headless=True)
         self.logged_in = False
 
         #Data 
@@ -46,6 +46,8 @@ class RedfinData():
         
 
     def UpdateSalesData(self):
+        logging.info('Scraping Sales Data')
+
         #Save Backup
         backup_name = 'Sales_Data-'+str(dt.datetime.now().strftime('%m-%d-%Y'))+'_'+str(randrange(1, 99999))+'.csv'
         self.sales_data.to_csv(os.path.join(self.dir,'backup',backup_name))
@@ -88,6 +90,7 @@ class RedfinData():
 
 
     def UpdateMLSData(self):
+        logging.info('Scraping MLS Data (slow)')
         #Save Backup
         backup_name = 'MLS_Data-'+str(dt.datetime.now().strftime('%m-%d-%Y'))+'_'+str(randrange(1, 99999))+'.csv'
         self.mls_data.to_csv(os.path.join(self.dir, 'backup',backup_name))
@@ -146,7 +149,7 @@ class RedfinData():
 #%%
 if __name__ == "__main__":
 
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     logging.info('Running Updated...')
 
     print("Choose Update Method (Use VPN if banned):")
@@ -178,3 +181,8 @@ if __name__ == "__main__":
         print('Error Invalid Response')
     
     logging.info('Finished')
+
+
+
+
+#%%
