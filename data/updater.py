@@ -24,7 +24,6 @@ class RedfinData():
         self.logged_in = False
 
         #Data 
-        self.user_agent_list = open(os.path.join(self.dir, 'resources','user-agents.txt'), "r").read().splitlines() #User Agent List for Headers
         self.zipcodes = pd.read_csv(os.path.join(self.dir, 'resources','zipcodes.csv'), low_memory=False) #Zipcodes for data pulls
         try:
             self.sales_data = pd.read_csv(os.path.join(self.dir,'Sales_Data.csv'), low_memory=False).convert_dtypes().iloc[:, 1:] #Current Sales Data
@@ -100,7 +99,6 @@ class RedfinData():
         scraper = self.scraper
 
         #Initialize Variables
-        user_agent_list = self.user_agent_list
         urls = self.sales_data['URL (SEE http://www.redfin.com/buy-a-home/comparative-market-analysis FOR INFO ON PRICING)'].unique()
         completed = self.mls_data.dropna(how='all', subset=list(self.mls_data.columns)[1:], inplace=False)['url'].unique()
 
