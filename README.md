@@ -1,7 +1,7 @@
 # rf-house-model
  Real Estate ML Model with Redfin Data Scraper
 
-# Notes
+## Notes
 1. Must fill-in username in password in data/resources/redfin_login
 2. Create zipcodes.csv in data/resources with headers as [Region, City, Zip Code], Zip Code being the main values for the scraper
 3. ```python updater.py``` to get new data
