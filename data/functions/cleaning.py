@@ -169,7 +169,7 @@ def merge_data(clean_sales_data, clean_mls_data):
 
     model_data = model_data.convert_dtypes()
 
-    model_data.drop(['STATE OR PROVINCE', 'ZIP OR POSTAL CODE','CITY', 'URL'], axis=1, inplace=True)
+    model_data.drop(['STATE OR PROVINCE', 'ZIP OR POSTAL CODE','CITY', 'URL', 'SOLD DATE'], axis=1, inplace=True)
 
     return model_data
 

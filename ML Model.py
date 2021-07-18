@@ -20,11 +20,11 @@ from sklearn.feature_selection._base import SelectorMixin
 from sklearn.feature_extraction.text import _VectorizerMixin
 
 from functions import get_feature_names
-from data.functions.selenium_funcs import mls_parse
+from data.functions.selenium_funcs import RedfinScraper
 #Tune hyper paramters?
 hyper_param_tune = False
 #%%%
-df = pd.read_csv(r'.\data\Model_Data.csv')
+df = pd.read_csv(r'.\data\Model_Data.csv', low_memory=False, thousands=',')
 
 #%%
 categorical_features = ['PROPERTY TYPE',
@@ -44,9 +44,12 @@ categorical_features = ['PROPERTY TYPE',
 
 
 #%%
-#df = df[pd.to_datetime(df['SOLD DATE']).dt.year >= 2020]
-df.drop(['Unnamed: 0'], axis=1, inplace=True)
-df = df[df['PRICE'] < 1000000]
+#df = df[(pd.to_datetime(df['DATE SOLD_UNIX'], unit='s', origin='unix').dt.year >= 2018)]
+df = df[~df['DATE SOLD_UNIX'].isna()]
+df = df[np.abs(df['PRICE']-df['PRICE'].mean()) <= (3*df['PRICE'].std())]
+#df = df[df['PRICE'] < 10000000]
+#df = df[df['PRICE'] > 10000]
+
 #%%
 
 print(df.nunique())
@@ -189,7 +192,6 @@ y_pred = model.predict(X_test)
 mse=sklearn.metrics.mean_squared_error(np.exp(y_test), np.exp(y_pred))
 rmse = mse**(1/2.0)
 print(rmse)
-
 
 #%% 
 if hyper_param_tune == False:
