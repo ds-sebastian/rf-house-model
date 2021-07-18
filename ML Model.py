@@ -25,22 +25,8 @@ from data.functions.selenium_funcs import mls_parse
 hyper_param_tune = False
 #%%%
 df = pd.read_csv(r'.\data\Model_Data.csv')
-df = df.replace(',','', regex=True)
-df = df.convert_dtypes().replace({pd.NA: np.nan})
-
-remove_home_types = ['Vacant Land', 'Mobile/Manufactured Home']
-df = df.loc[~df["PROPERTY TYPE"].isin(remove_home_types)]
-
-#start = pd.to_datetime(df['SOLD DATE'].min())
-#df['TIME VAR'] = (2)^((pd.to_datetime(df['SOLD DATE'])-start).dt.days) #83
-df['DATE SOLD_UNIX'] = (pd.to_datetime(df['SOLD DATE']) - pd.Timestamp("1970-01-01")) // pd.Timedelta('1s') #76
-
-#df["LONGITUDE"] = np.radians(df["LONGITUDE"])
-#df["LATITUDE"] = np.radians(df["LATITUDE"])
-
 
 #%%
-
 categorical_features = ['PROPERTY TYPE',
                 #, 'CITY'
                 #, 'kmn_cluster'
@@ -57,104 +43,10 @@ categorical_features = ['PROPERTY TYPE',
                 ]
 
 
-#for col in categorical_features:
-#    print(col)
-#    city_freq = df[col].value_counts(normalize=True)
-#    botton_decile = city_freq.quantile(q=0.20)
-#    less_freq_cities = city_freq[city_freq<=botton_decile]
-#    df[col].loc[df[col].isin(less_freq_cities.index.tolist())] = "OTHER"
-
-
-#%%----------------------------------------------------------------
-
-
-test = pd.DataFrame(df['GARAGE_CODE'].value_counts())
-# AIR_CONDITIONING_CODE not in Separate System,Package, Central, Heat Pump == None 
-df.loc[~df['AIR_CONDITIONING_CODE'].isin(['Separate System', 'Central', 'Heat Pump']) & (~df['AIR_CONDITIONING_CODE'].isna()),'AIR_CONDITIONING_CODE'] = 'None'
-
-# FUEL_CODE not in Gas, Electric == Other
-df.loc[~df['FUEL_CODE'].isin(['Gas', 'Electric']) & (~df['FUEL_CODE'].isna()),'FUEL_CODE'] = 'Other'
-
-df['HEATING_TYPE_CODE'] = df['HEATING_TYPE_CODE'].map({'Forced Air' : 'Water-Air',
-'Package' : 'Gas-Electric',
-'Heat Pump' : 'Water-Air',
-'Central' : 'Water-Air',
-'Hot Air' : 'Water-Air',
-'Baseboard Electric' : 'Gas-Electric',
-'Floor/wall Furnace' : 'Gas-Electric',
-'Partial' : 'None',
-'Space' : 'None',
-'Not Ducted' : 'None',
-'Heat Pump Electric' : 'Gas-Electric',
-'Baseboard Hot Water' : 'Water-Air',
-'Radiant' : 'Gas-Electric',
-'Steam Hot Water' : 'Water-Air',
-'Wall' : 'Gas-Electric',
-'Hot Water' : 'Water-Air',
-'Unit' : 'Gas-Electric',
-'Forced Air Not Ducted' : 'Water-Air',
-'Wall Electric' : 'Gas-Electric',
-'Gas' : 'Gas-Electric',
-'Electric' : 'Gas-Electric',
-'Baseboard' : 'Gas-Electric',
-'Radiant Ceiling' : 'Gas-Electric',
-'Solar' : 'Gas-Electric',
-'Forced Air Gas' : 'Gas-Electric',
-'Radiant Hot Water' : 'Water-Air',
-'Wall Furnace' : 'None',
-'Wood Stove' : 'None',
-'Steam' : 'Water-Air',
-'Radiant Electric' : 'Gas-Electric'}, na_action='ignore')
-df.loc[~df['EXTERIOR_WALL_CODE'].isin(list(df['EXTERIOR_WALL_CODE'].value_counts().head(10).index)) & (~df['EXTERIOR_WALL_CODE'].isna()),'EXTERIOR_WALL_CODE'] = 'Other'
-df.loc[~df['ROOF_TYPE_CODE'].isin(list(df['ROOF_TYPE_CODE'].value_counts().head(3).index)) & (~df['ROOF_TYPE_CODE'].isna()),'ROOF_TYPE_CODE'] = 'Other'
-
-
-#GARAGE_CODE contains unfinished == None THEN brick == Masonry
-
-
-df.loc[(df['GARAGE_CODE'].str.contains('Unfinished')) & (~df['GARAGE_CODE'].isna()), 'GARAGE_CODE'] = 'Unfinished'
-df.loc[(df['GARAGE_CODE'].str.contains('Carport')) & (~df['GARAGE_CODE'].isna()), 'GARAGE_CODE'] = 'Carport'
-df.loc[(df['GARAGE_CODE'].str.contains('Frame')) & (~df['GARAGE_CODE'].isna()), 'GARAGE_CODE'] = 'Frame'
-df.loc[(df['GARAGE_CODE'].str.contains('Brick')) & (~df['GARAGE_CODE'].isna()), 'GARAGE_CODE'] = 'Masonry'
-df.loc[(df['GARAGE_CODE'].str.contains('Attached')) & (~df['GARAGE_CODE'].isna()), 'GARAGE_CODE'] = 'Attached'
-df.loc[(df['GARAGE_CODE'].str.contains('Detached')) & (~df['GARAGE_CODE'].isna()), 'GARAGE_CODE'] = 'Finished'
-df.loc[(df['GARAGE_CODE'].str.contains('Basement')) & (~df['GARAGE_CODE'].isna()), 'GARAGE_CODE'] = 'Unfinished'
-
-
-
-
-#%%%%
-
-
-
-
 #%%
-#df[categorical_features] = df[categorical_features].fillna("UNKNOWN")
-#%%
-
-
-#df['x'] = np.cos(df['LATITUDE']) * np.cos(df['LONGITUDE'])
-#df['y'] = np.cos(df['LATITUDE']) * np.sin(df['LONGITUDE'])
-#df['z'] = np.sin(df['LATITUDE'])
-
-#%%
-
-#%%
-
-#df['is_Pandemic'] = pd.to_datetime(df['SOLD DATE'])>='2020-03-11'
-#df['is_CY'] = pd.to_datetime(df['SOLD DATE'])>='2021-01-01'
-
 #df = df[pd.to_datetime(df['SOLD DATE']).dt.year >= 2020]
-df.drop(['SOLD DATE', 'STATE OR PROVINCE', 'Unnamed: 0', 'ZIP OR POSTAL CODE','CITY', 'YEAR BUILT', 'url', 'ZONING_CODE' ,'MUNICIPALITY_NAME', 'COUNTY_USE_DESCRIPTION'], axis=1, inplace=True)
-#df.drop(['LATITUDE', 'LONGITUDE'], axis=1, inplace=True)
-#df.drop(['CITY'], axis=1, inplace=True)
-#df.drop(['TIME VAR','SOLD DATE', 'STATE OR PROVINCE', 'Unnamed: 0'], axis=1, inplace=True)
-#df['ZIP OR POSTAL CODE'] = df['ZIP OR POSTAL CODE'].astype(str).str[:3]
-
-
+df.drop(['Unnamed: 0'], axis=1, inplace=True)
 df = df[df['PRICE'] < 1000000]
-
-
 #%%
 
 print(df.nunique())

@@ -1,104 +1,176 @@
 # %%
 import pandas as pd
 import numpy as np
-import seaborn as sn
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
-import seaborn as sns
 
-import datetime
-
-import regex as re
-
-# %%
-
-
+#%%
 def sales_clean(sales_data):
+    '''cleans sales data'''
+    sales_data = sales_data[sales_data['PRICE'].notna()]
+    sales_data = sales_data.replace(',','', regex=True)
+    sales_data = sales_data.replace({pd.NA: np.nan})
+    sales_data = sales_data.applymap(lambda s:s.upper() if type(s) == str else s)
+    sales_data.columns= sales_data.columns.str.strip().str.upper()
 
-    sales_data['url'] = sales_data['URL (SEE http://www.redfin.com/buy-a-home/comparative-market-analysis FOR INFO ON PRICING)']
-    sales_data.drop(['SALE TYPE', 'ADDRESS', 'LOCATION', '$/SQUARE FEET', 'STATUS', 'URL (SEE http://www.redfin.com/buy-a-home/comparative-market-analysis FOR INFO ON PRICING)',
+    sales_data.rename(columns={'URL (SEE HTTP://WWW.REDFIN.COM/BUY-A-HOME/COMPARATIVE-MARKET-ANALYSIS FOR INFO ON PRICING)':'URL'}, inplace=True) #Rename url
+    sales_data.drop(['SALE TYPE', 'ADDRESS', 'LOCATION', '$/SQUARE FEET', 'STATUS',
                      'NEXT OPEN HOUSE START TIME', 'NEXT OPEN HOUSE END TIME',
                      'SOURCE', 'MLS#', 'FAVORITE', 'INTERESTED'], axis=1, inplace=True)
 
+    sales_data['DATE SOLD_UNIX'] = (pd.to_datetime(sales_data['SOLD DATE']) - pd.Timestamp("1970-01-01")) // pd.Timedelta('1s') #76
+
     sales_data = sales_data[sales_data['PRICE'].notna()]
+
     sales_data = sales_data.convert_dtypes()
 
-    sales_data.dtypes
-
-    sales_data['SOLD DATE'] = pd.to_datetime(
-        sales_data['SOLD DATE'], errors='coerce')
-
-    sales_data['Age'] = sales_data['SOLD DATE'].apply(
+    sales_data['SOLD DATE'] = pd.to_datetime(sales_data['SOLD DATE'], errors='coerce')
+    sales_data['AGE'] = sales_data['SOLD DATE'].apply(
         lambda x: x.year)-sales_data['YEAR BUILT']
-    sales_data['Age'] = sales_data['Age'].replace({pd.NA: np.nan})
 
-    # City name unification
-    sales_data['CITY'] = sales_data['CITY'].str.upper()
-
-    # Zip
+    # Zip simplify
     sales_data['ZIP OR POSTAL CODE'] = sales_data['ZIP OR POSTAL CODE'].str[:5]
 
-    # PROPERTY TYPE
-    sales_data_types = ['Unknown', 'Other', 'Ranch', 'Parking']
-    sales_data.loc[sales_data["PROPERTY TYPE"].isin(
-        sales_data_types), "PROPERTY TYPE"] = "Other"
+    # Remove other property types
+    sales_data_types = ['UNKNOWN', 'OTHER', 'RANCH', 'PARKING', 'VACANT LAND', 'MOBILE/MANUFACTURED HOME']
+    sales_data = sales_data.loc[~sales_data["PROPERTY TYPE"].isin(sales_data_types)]
 
-    sales_data_types = ['Multi-Family (2-4 Unit)', 'Multi-Family (5+ Unit)']
-    sales_data.loc[sales_data["PROPERTY TYPE"].isin(
-        sales_data_types), "PROPERTY TYPE"] = "Multi-Family"
+    #Multi family combine
+    sales_data.loc[sales_data['PROPERTY TYPE'].str.contains('MULTI'), 'PROPERTY TYPE'] = 'MULTI-FAMILY'
 
     # fill Lot Size of condo and mobile/manufactured home to 0
-    # sales_data.loc[(sales_data['LOT SIZE'].isna()) & (sales_data['PROPERTY TYPE']=='Mobile/Manufactured Home'),'LOT SIZE'] = str(0) #notworking
-    #sales_data.loc[(sales_data['LOT SIZE'].isna()) & (sales_data['PROPERTY TYPE']=='Condo/Co-op'),'LOT SIZE'] = str(0)
-    #sales_data.loc[(sales_data['LOT SIZE'].isna()) & (sales_data['PROPERTY TYPE']=='Townhouse'),'LOT SIZE'] = str(0)
-    sales_data['PROPERTY TYPE'].value_counts()
+    sales_data.loc[(sales_data['LOT SIZE'].isna()) & (sales_data['PROPERTY TYPE']=='CONDO/CO-OP'),'LOT SIZE'] = 0
+    sales_data.loc[(sales_data['LOT SIZE'].isna()) & (sales_data['PROPERTY TYPE']=='TOWNHOUSE'),'LOT SIZE'] = 0
 
     sales_data = sales_data.convert_dtypes()
 
     return sales_data
-
-
+#%%
 def mls_clean(mls_data):
-    kept_cols = ['url',
-                 'numStories',
-                 'yearRenovated',
-                 'sqFtFinished',
-                 'totalSqFt',
-                 'lotSqFt',
-                 # 'propertyLastUpdatedDate', #Could use to clean data?
+    '''cleans mls data'''
+    mls_data = mls_data.replace(',','', regex=True)
+    mls_data = mls_data.replace({pd.NA: np.nan})
+    mls_data = mls_data.applymap(lambda s:s.upper() if type(s) == str else s)
+    mls_data.columns= mls_data.columns.str.strip().str.upper()
+
+    kept_cols = ['URL',
+                 'NUMSTORIES',
+                 'YEARRENOVATED',
+                 'SQFTFINISHED',
+                 'TOTALSQFT',
+                 'LOTSQFT',
+                 # 'PROPERTYLASTUPDATEDDATE', #COULD USE TO CLEAN DATA?
                  'FULL_BATHS',
+                 'HALF_BATHS',
                  'AIR_CONDITIONING_CODE',
                  'FUEL_CODE',
                  'HEATING_TYPE_CODE',
                  'EXTERIOR_WALL_CODE',
                  'ROOF_TYPE_CODE',
                  'ASSESSED_YEAR',
-                 #'SUBDIVISION_NAME', #
                  'LIVING_SQUARE_FEET',
                  'BUILDING_SQUARE_FEET',
                  'GARAGE_PARKING_SQUARE_FEET',
                  'GARAGE_CODE',
                  'NUMBER_OF_BUILDINGS',
-                 'LAND_SQUARE_FOOTAGE',
-                 'MUNICIPALITY_NAME',
-                 'ACRES',
-                 'ZONING_CODE',
-                 'COUNTY_USE_DESCRIPTION',
-                 'parentRating',
-                 'schooldisance',
-                 'servesHome',
-                 'schoolchoice',
-                 'numberOfStudents',
-                 'school_score',
-                 'student_teacher_ratio',
-                 'review_nums',
-                 'taxableLandValue',
-                 'taxableImprovementValue',
-                 'rollYear',
-                 'taxesDue']
+                 'PARENTRATING',
+                 'SCHOOLDISANCE',
+                 'SERVESHOME',
+                 'NUMBEROFSTUDENTS',
+                 'SCHOOL_SCORE',
+                 'STUDENT_TEACHER_RATIO',
+                 'REVIEW_NUMS',
+                 'TAXABLELANDVALUE',
+                 'TAXABLEIMPROVEMENTVALUE',
+                 'ROLLYEAR',
+                 'TAXESDUE']
     initial_df = pd.DataFrame(columns=kept_cols)
     mls_data = pd.concat([initial_df, mls_data])[kept_cols]
 
+    # AIR_CONDITIONING_CODE not in Separate System,Package, Central, Heat Pump == None 
+    mls_data.loc[~mls_data['AIR_CONDITIONING_CODE'].isin(['SEPARATE SYSTEM', 'CENTRAL', 'HEAT PUMP']) & (~mls_data['AIR_CONDITIONING_CODE'].isna()),'AIR_CONDITIONING_CODE'] = 'NONE'
+
+    # FUEL_CODE not in Gas, Electric == Other
+    mls_data.loc[~mls_data['FUEL_CODE'].isin(['GAS', 'ELECTRIC']) & (~mls_data['FUEL_CODE'].isna()),'FUEL_CODE'] = 'OTHER'
+
+    #HEATING TYPE MAP
+    mls_data['HEATING_TYPE_CODE'] = mls_data['HEATING_TYPE_CODE'].map(
+        {'FORCED AIR' : 'WATER-AIR',
+        'PACKAGE' : 'GAS-ELECTRIC',
+        'HEAT PUMP' : 'WATER-AIR',
+        'CENTRAL' : 'WATER-AIR',
+        'HOT AIR' : 'WATER-AIR',
+        'BASEBOARD ELECTRIC' : 'GAS-ELECTRIC',
+        'FLOOR/WALL FURNACE' : 'GAS-ELECTRIC',
+        'PARTIAL' : 'NONE',
+        'SPACE' : 'NONE',
+        'NOT DUCTED' : 'NONE',
+        'HEAT PUMP ELECTRIC' : 'GAS-ELECTRIC',
+        'BASEBOARD HOT WATER' : 'WATER-AIR',
+        'RADIANT' : 'GAS-ELECTRIC',
+        'STEAM HOT WATER' : 'WATER-AIR',
+        'WALL' : 'GAS-ELECTRIC',
+        'HOT WATER' : 'WATER-AIR',
+        'UNIT' : 'GAS-ELECTRIC',
+        'FORCED AIR NOT DUCTED' : 'WATER-AIR',
+        'WALL ELECTRIC' : 'GAS-ELECTRIC',
+        'GAS' : 'GAS-ELECTRIC',
+        'ELECTRIC' : 'GAS-ELECTRIC',
+        'BASEBOARD' : 'GAS-ELECTRIC',
+        'RADIANT CEILING' : 'GAS-ELECTRIC',
+        'SOLAR' : 'GAS-ELECTRIC',
+        'FORCED AIR GAS' : 'GAS-ELECTRIC',
+        'RADIANT HOT WATER' : 'WATER-AIR',
+        'WALL FURNACE' : 'NONE',
+        'WOOD STOVE' : 'NONE',
+        'STEAM' : 'WATER-AIR',
+        'RADIANT ELECTRIC' : 'GAS-ELECTRIC'
+        }, na_action='ignore')
+
+    #Keep top 10 wall types
+    mls_data.loc[~mls_data['EXTERIOR_WALL_CODE'].isin(list(mls_data['EXTERIOR_WALL_CODE'].value_counts().head(10).index)) & (~mls_data['EXTERIOR_WALL_CODE'].isna()),'EXTERIOR_WALL_CODE'] = 'OTHER'
+
+    #keep top 3 roof types
+    mls_data.loc[~mls_data['ROOF_TYPE_CODE'].isin(list(mls_data['ROOF_TYPE_CODE'].value_counts().head(3).index)) & (~mls_data['ROOF_TYPE_CODE'].isna()),'ROOF_TYPE_CODE'] = 'OTHER'
+
+    #garage code cleaning
+    mls_data.loc[(mls_data['GARAGE_CODE'].str.contains('UNFINISHED')) & (~mls_data['GARAGE_CODE'].isna()), 'GARAGE_CODE'] = 'UNFINISHED'
+    mls_data.loc[(mls_data['GARAGE_CODE'].str.contains('CARPORT')) & (~mls_data['GARAGE_CODE'].isna()), 'GARAGE_CODE'] = 'CARPORT'
+    mls_data.loc[(mls_data['GARAGE_CODE'].str.contains('FRAME')) & (~mls_data['GARAGE_CODE'].isna()), 'GARAGE_CODE'] = 'FRAME'
+    mls_data.loc[(mls_data['GARAGE_CODE'].str.contains('BRICK')) & (~mls_data['GARAGE_CODE'].isna()), 'GARAGE_CODE'] = 'MASONRY'
+    mls_data.loc[(mls_data['GARAGE_CODE'].str.contains('ATTACHED')) & (~mls_data['GARAGE_CODE'].isna()), 'GARAGE_CODE'] = 'ATTACHED'
+    mls_data.loc[(mls_data['GARAGE_CODE'].str.contains('DETACHED')) & (~mls_data['GARAGE_CODE'].isna()), 'GARAGE_CODE'] = 'FINISHED'
+    mls_data.loc[(mls_data['GARAGE_CODE'].str.contains('BASEMENT')) & (~mls_data['GARAGE_CODE'].isna()), 'GARAGE_CODE'] = 'UNFINISHED'
+
+    mls_data = mls_data.convert_dtypes()
+
     return mls_data
+
+# %%
+#Clean Data
+def merge_data(clean_sales_data, clean_mls_data):
+    '''combines and cleans mls + sales data'''
+
+    model_data = pd.merge(
+        clean_sales_data, clean_mls_data, on='URL', how='left')
+    model_data = model_data.replace(',', '', regex=True)
+    model_data.drop_duplicates(inplace=True, ignore_index=True)
+
+    # sqft_house: if SQUARE FEET is null then max(sqFtFinished, totalSqFt)
+    model_data['SQUARE FEET'].fillna(model_data[['SQFTFINISHED','TOTALSQFT']].max(axis=1), inplace=True)
+    model_data.drop(['SQFTFINISHED','TOTALSQFT'], axis=1, inplace=True)
+
+    # sqft_lot: if LOT SIZE is null then lotSqFt
+    model_data['LOT SIZE'].fillna(model_data[['LOTSQFT']].max(axis=1), inplace=True)
+    model_data.drop(['LOTSQFT'], axis=1, inplace=True)
+
+    # baths: if BATHS in null, FULL_BATHS+0.5*HALF_BATHS
+    model_data['BATHS'].fillna(model_data['FULL_BATHS']+0.5*model_data['HALF_BATHS'], inplace=True)
+    model_data.drop(['FULL_BATHS','HALF_BATHS'], axis=1, inplace=True)
+
+
+    model_data = model_data.convert_dtypes()
+
+    model_data.drop(['STATE OR PROVINCE', 'ZIP OR POSTAL CODE','CITY', 'URL'], axis=1, inplace=True)
+
+    return model_data
 
 # %%

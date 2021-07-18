@@ -11,18 +11,21 @@ import logging
 import datetime as dt
 from functions.selenium_funcs import RedfinScraper
 from resources.redfin_login import rf_username, rf_password
-from functions.cleaning import sales_clean, mls_clean
+from functions.cleaning import sales_clean, mls_clean, merge_data
 
 class RedfinData():
 
     def __init__(self):
+        '''
+        Pulls in inital data saved in CSVs
+        Sets directory
+        '''
         #Logging
         logging.info('Initializing...')
 
         #Current Directory
         self.dir = os.path.dirname(__file__)
 
-        self.scraper = RedfinScraper(headless=True)
         self.logged_in = False
 
         #Data
@@ -30,34 +33,36 @@ class RedfinData():
             self.dir, 'resources', 'zipcodes.csv'), low_memory=False)  # Zipcodes for data pulls
         try:
             self.sales_data = pd.read_csv(os.path.join(
-                self.dir, 'Sales_Data.csv'), low_memory=False).convert_dtypes().iloc[:, 1:]  # Current Sales Data
+                self.dir, 'Sales_Data.csv'), low_memory=False).convert_dtypes()  # Current Sales Data
         except:
             self.sales_data = pd.DataFrame()
         try:
             self.mls_data = pd.read_csv(os.path.join(
-                self.dir, 'MLS_Data.csv'), low_memory=False).convert_dtypes().iloc[:, 1:]  # Current MLS Data
+                self.dir, 'MLS_Data.csv'), low_memory=False).convert_dtypes()  # Current MLS Data
         except:
             self.mls_data = pd.DataFrame()
         try:
             self.model_data = pd.read_csv(os.path.join(
-                self.dir, 'Model_Data.csv'), low_memory=False).convert_dtypes().iloc[:, 1:]  # Current MLS Data
+                self.dir, 'Model_Data.csv'), low_memory=False).convert_dtypes()  # Current MLS Data
         except:
             self.model_data = pd.DataFrame()
 
-    def RedfinLogin(self, username=rf_username, password=rf_password):
+    def redfin_login(self, username=rf_username, password=rf_password):
+        '''Starts selenium browser and logs into Redfin'''
         if self.logged_in == False:
-
+            self.scraper = RedfinScraper(headless=False)
             self.scraper.Login(username, password)
             self.logged_in = True
 
-    def UpdateSalesData(self):
+    def update_sales_data(self):
+        '''Scrapes all sold homes in the last 5 years and combines with current data'''
         logging.info('Scraping Sales Data')
 
         #Save Backup
         backup_name = 'Sales_Data-' + \
             str(dt.datetime.now().strftime('%m-%d-%Y')) + \
             '_'+str(randrange(1, 99999))+'.csv'
-        self.sales_data.to_csv(os.path.join(self.dir, 'backup', backup_name))
+        self.sales_data.to_csv(os.path.join(self.dir, 'backup', backup_name),index=False)
 
         lead = self.zipcodes
 
@@ -97,14 +102,16 @@ class RedfinData():
         combined_sales.to_csv(os.path.join(self.dir, 'Sales_Data.csv'))
         self.sales_data = combined_sales.copy()
 
-    def UpdateMLSData(self):
+    def update_mls_data(self):
+        '''Scrapes MLS data for ONLY new URLs (since it's very slow)'''
+
         logging.info('Scraping MLS Data (slow)')
         #Save Backup
         backup_name = 'MLS_Data-' + \
             str(dt.datetime.now().strftime('%m-%d-%Y')) + \
             '_'+str(randrange(1, 99999))+'.csv'
 
-        self.mls_data.to_csv(os.path.join(self.dir, 'backup', backup_name))
+        self.mls_data.to_csv(os.path.join(self.dir, 'backup', backup_name),index=False)
 
         self.RedfinLogin()
         scraper = self.scraper
@@ -127,38 +134,40 @@ class RedfinData():
                 pass
 
         mls_data.drop_duplicates(inplace=True, ignore_index=True)
-        mls_data.to_csv(os.path.join(self.dir, 'MLS_Data.csv'))
+        mls_data.to_csv(os.path.join(self.dir, 'MLS_Data.csv'),index=False)
         self.mls_data = mls_data.copy()
 
-    def UpdateModelData(self):
+    def update_model_data(self):
+        '''Cleans and combines the mls data and the sales data for model development'''
         logging.info('Cleaning Model Data')
+
         #Save Backup
         backup_name = 'Model_Data-' + \
             str(dt.datetime.now().strftime('%m-%d-%Y')) + \
             '_'+str(randrange(1, 99999))+'.csv'
-        self.model_data.to_csv(os.path.join(self.dir, 'backup', backup_name))
+        self.model_data.to_csv(os.path.join(self.dir, 'backup', backup_name),index=False)
 
         #Clean Data
-
         clean_sales_data = sales_clean(self.sales_data.copy())
         clean_mls_data = mls_clean(self.mls_data.copy())
 
-        model_data = pd.merge(
-            clean_sales_data, clean_mls_data, on='url', how='left')
-        model_data = model_data.replace(',', '', regex=True)
+        #Combine
+        model_data = merge_data(clean_sales_data,clean_mls_data)
 
-        model_data.drop_duplicates(inplace=True, ignore_index=True)
-        model_data.to_csv(os.path.join(self.dir, 'Model_Data.csv'))
+        model_data.to_csv(os.path.join(self.dir, 'Model_Data.csv'),index=False)
         self.model_data = model_data.copy()
 
-    def CompleteUpdate(self):
+    def complete_update(self):
+        '''runs through all updates'''
         self.UpdateSalesData()
         self.UpdateMLSData()
         self.UpdateModelData()
 
-    def ExitBrowser(self):
-        logging.info('Exiting Browser...')
-        self.scraper.driver.quit()
+    def exit_browser(self):
+        '''quits all browsers'''
+        if self.logged_in == True:
+            logging.info('Exiting Browser...')
+            self.scraper.driver.quit()
 
 
 #%%
@@ -178,23 +187,22 @@ if __name__ == "__main__":
 
     if response == '1':
         updater = RedfinData()
-        updater.UpdateSalesData()
-        updater.ExitBrowser()
+        updater.update_sales_data()
+        updater.exit_browser()
 
     elif response == '2':
         updater = RedfinData()
-        updater.UpdateMLSData()
-        updater.ExitBrowser()
+        updater.update_mls_data()
+        updater.exit_browser()
 
     elif response == '3':
         updater = RedfinData()
-        updater.UpdateModelData()
-        updater.ExitBrowser()
+        updater.update_model_data()
 
     elif response == '4':
         updater = RedfinData()
-        updater.CompleteUpdate()
-        updater.ExitBrowser()
+        updater.complete_update()
+        updater.exit_browser()
 
     else:
         print('Error Invalid Response')
