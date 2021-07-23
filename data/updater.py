@@ -9,9 +9,9 @@ import pandas as pd
 #from functions.logger-setup import logger
 import logging
 import datetime as dt
-from functions.selenium_funcs import RedfinScraper
-from resources.redfin_login import rf_username, rf_password
-from functions.cleaning import sales_clean, mls_clean, merge_data
+from .functions.selenium_funcs import RedfinScraper
+from .resources.redfin_login import rf_username, rf_password
+from .functions.cleaning import sales_clean, mls_clean, merge_data
 
 class RedfinData():
 

@@ -14,6 +14,95 @@ import json
 import logging
 
 
+#%%----------------------------------------------------------------
+def mls_parse(url, text):
+    url_df = pd.DataFrame({'url': url}, index=[0])
+    #######          MLS DATA               #############
+    try:
+        mls_regex = re.findall(r'{"amenityName":.*?\}', text)
+        mls_regex = [json.loads(x) for x in mls_regex]
+        mls_data = pd.DataFrame(mls_regex)[
+            ['referenceName', 'amenityValues']]
+        mls_data['amenityValues'] = mls_data['amenityValues'].map(
+            lambda x: x[0])
+        mls_data = mls_data.set_index('referenceName').T.reset_index()
+    except:
+        mls_data = pd.DataFrame()
+    ########         BASIC DATA             #############
+    try:
+        basic_data = pd.DataFrame(json.loads(re.findall(
+            '{"basicInfo":({.*?\})', text)[0]), index=[0])
+    except:
+        basic_data = pd.DataFrame()
+    #######          TAX DATA               #############
+    try:
+        tax_data = pd.DataFrame(json.loads(re.findall(
+            '"taxInfo":({.*?\})', text)[0]), index=[0])
+    except:
+        tax_data = pd.DataFrame()
+    #######          SCHOOL DATA            #############
+    try:
+        school_regex = re.findall(
+            r'({"servesHome":.*?),"schoolReviews"', text)
+        school_regex = [str(x) + r'}' for x in school_regex]
+        school_data = pd.DataFrame([json.loads(x) for x in school_regex])
+        try:
+            parentRating = school_data['parentRating'].astype(float).mean()
+        except:
+            parentRating = ''
+        try:
+            schooldisance = school_data['distanceInMiles'].astype(
+                float).mean()
+        except:
+            schooldisance = ''
+        try:
+            servesHome = school_data['servesHome'].sum(
+            )/len(school_data.index)
+        except:
+            servesHome = ''
+        try:
+            schoolchoice = school_data['isChoice'].sum(
+            )/len(school_data.index)
+        except:
+            schoolchoice = ''
+        try:
+            numberOfStudents = school_data['numberOfStudents'].astype(
+                float).mean()
+        except:
+            numberOfStudents = ''
+        try:
+            school_score = school_data['greatSchoolsRating'].astype(
+                float).mean()
+        except:
+            school_score = ''
+        try:
+            student_teacher_ratio = school_data['studentToTeacherRatio'].astype(
+                float).mean()
+        except:
+            student_teacher_ratio = ''
+        try:
+            review_nums = school_data['numReviews'].astype(float).mean()
+        except:
+            review_nums = ''
+        school = pd.DataFrame({'parentRating': parentRating,
+                               'schooldisance': schooldisance,
+                               'servesHome': servesHome,
+                               'schoolchoice': schoolchoice,
+                               'numberOfStudents': numberOfStudents,
+                               'school_score': school_score,
+                               'student_teacher_ratio': student_teacher_ratio,
+                               'review_nums': review_nums}, index=[0])
+    except:
+        school = pd.DataFrame()
+    try:
+        final = pd.concat(
+            [url_df, basic_data, mls_data, school, tax_data], axis=1)
+    except:
+        final = pd.DataFrame()
+
+    return final
+
+#%%
 class RedfinScraper():
 
     def __init__(self, headless=True):
@@ -109,95 +198,6 @@ class RedfinScraper():
 
         text = driver.find_element(By.TAG_NAME, "body").text
 
-        url_df = pd.DataFrame({'url': url}, index=[0])
-        #######          MLS DATA               #############
-        try:
-            mls_regex = re.findall(r'{"amenityName":.*?\}', text)
-            mls_regex = [json.loads(x) for x in mls_regex]
-            mls_data = pd.DataFrame(mls_regex)[
-                ['referenceName', 'amenityValues']]
-            mls_data['amenityValues'] = mls_data['amenityValues'].map(
-                lambda x: x[0])
-            mls_data = mls_data.set_index('referenceName').T.reset_index()
-        except:
-            mls_data = pd.DataFrame()
-
-        ########         BASIC DATA             #############
-        try:
-            basic_data = pd.DataFrame(json.loads(re.findall(
-                '{"basicInfo":({.*?\})', text)[0]), index=[0])
-        except:
-            basic_data = pd.DataFrame()
-
-        #######          TAX DATA               #############
-        try:
-            tax_data = pd.DataFrame(json.loads(re.findall(
-                '"taxInfo":({.*?\})', text)[0]), index=[0])
-        except:
-            tax_data = pd.DataFrame()
-
-        #######          SCHOOL DATA            #############
-        try:
-            school_regex = re.findall(
-                r'({"servesHome":.*?),"schoolReviews"', text)
-            school_regex = [str(x) + r'}' for x in school_regex]
-            school_data = pd.DataFrame([json.loads(x) for x in school_regex])
-
-            try:
-                parentRating = school_data['parentRating'].astype(float).mean()
-            except:
-                parentRating = ''
-            try:
-                schooldisance = school_data['distanceInMiles'].astype(
-                    float).mean()
-            except:
-                schooldisance = ''
-            try:
-                servesHome = school_data['servesHome'].sum(
-                )/len(school_data.index)
-            except:
-                servesHome = ''
-            try:
-                schoolchoice = school_data['isChoice'].sum(
-                )/len(school_data.index)
-            except:
-                schoolchoice = ''
-            try:
-                numberOfStudents = school_data['numberOfStudents'].astype(
-                    float).mean()
-            except:
-                numberOfStudents = ''
-            try:
-                school_score = school_data['greatSchoolsRating'].astype(
-                    float).mean()
-            except:
-                school_score = ''
-            try:
-                student_teacher_ratio = school_data['studentToTeacherRatio'].astype(
-                    float).mean()
-            except:
-                student_teacher_ratio = ''
-            try:
-                review_nums = school_data['numReviews'].astype(float).mean()
-            except:
-                review_nums = ''
-
-            school = pd.DataFrame({'parentRating': parentRating,
-                                   'schooldisance': schooldisance,
-                                   'servesHome': servesHome,
-                                   'schoolchoice': schoolchoice,
-                                   'numberOfStudents': numberOfStudents,
-                                   'school_score': school_score,
-                                   'student_teacher_ratio': student_teacher_ratio,
-                                   'review_nums': review_nums}, index=[0])
-
-        except:
-            school = pd.DataFrame()
-
-        try:
-            final = pd.concat(
-                [url_df, basic_data, mls_data, school, tax_data], axis=1)
-        except:
-            final = pd.DataFrame()
+        final = mls_parse(url, text)
 
         return final
