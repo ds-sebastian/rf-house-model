@@ -50,7 +50,7 @@ class RedfinData():
     def redfin_login(self, username=rf_username, password=rf_password):
         '''Starts selenium browser and logs into Redfin'''
         if self.logged_in == False:
-            self.scraper = RedfinScraper(headless=False)
+            self.scraper = RedfinScraper(headless=True)
             self.scraper.Login(username, password)
             self.logged_in = True
 
@@ -66,7 +66,7 @@ class RedfinData():
 
         lead = self.zipcodes
 
-        self.RedfinLogin()
+        self.redfin_login()
         scraper = self.scraper
 
         filename_list = []
@@ -113,17 +113,19 @@ class RedfinData():
 
         self.mls_data.to_csv(os.path.join(self.dir, 'backup', backup_name),index=False)
 
-        self.RedfinLogin()
+        self.redfin_login()
         scraper = self.scraper
 
         #Initialize Variables
-        urls = self.sales_data['URL (SEE http://www.redfin.com/buy-a-home/comparative-market-analysis FOR INFO ON PRICING)'].unique()
-        completed = self.mls_data.dropna(how='all', subset=list(
-            self.mls_data.columns)[1:], inplace=False)['url'].unique()
+        sales_data = self.sales_data.copy()
+        mls_data = self.mls_data.copy()
+        mls_data = mls_data.loc[mls_data.count(1)[::-1].groupby(mls_data['url'][::-1]).idxmax()]
+        
+        urls = sales_data['URL (SEE http://www.redfin.com/buy-a-home/comparative-market-analysis FOR INFO ON PRICING)'].unique()
+        completed = mls_data.dropna(how='all', subset=list(
+            mls_data.columns)[1:], inplace=False)['url'].unique()
 
         urls = list(set(urls)-set(completed))  # Unscraped urls
-
-        mls_data = self.mls_data.copy()
 
         for url in tqdm(urls):
             try:
@@ -159,9 +161,9 @@ class RedfinData():
 
     def complete_update(self):
         '''runs through all updates'''
-        self.UpdateSalesData()
-        self.UpdateMLSData()
-        self.UpdateModelData()
+        self.update_sales_data()
+        self.update_mls_data()
+        self.update_mls_data()
 
     def exit_browser(self):
         '''quits all browsers'''

@@ -166,11 +166,10 @@ def merge_data(clean_sales_data, clean_mls_data):
     model_data['BATHS'].fillna(model_data['FULL_BATHS']+0.5*model_data['HALF_BATHS'], inplace=True)
     model_data.drop(['FULL_BATHS','HALF_BATHS'], axis=1, inplace=True)
 
-
-    model_data = model_data.convert_dtypes()
-
     model_data.drop(['STATE OR PROVINCE', 'ZIP OR POSTAL CODE','CITY', 'URL', 'SOLD DATE'], axis=1, inplace=True)
 
+    model_data = model_data.convert_dtypes()
+    
     return model_data
 
 # %%

@@ -17,9 +17,10 @@ column1 = dbc.Col(
             """
         
             ## Raleigh Area Real Estate Model
-
-            WIP
-
+            \n
+            This webapp uses available Redfin data to train and maintain a Machine Learning model
+            predicting the sales price of homes in the Triangle Area
+            \n
             """
         ),
         dcc.Link(dbc.Button('Predictions', color='primary'), href='/predictions'),
