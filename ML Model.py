@@ -77,15 +77,10 @@ numeric_transformer = Pipeline(steps=[
     ('imputer_num', SimpleImputer(strategy='mean')),
     ('scaler', StandardScaler())])
 
-
-
 preprocessor = ColumnTransformer(
     transformers=[
         ('num', numeric_transformer, numeric_features),
         ('cat', categorical_transformer, categorical_features)])
-
-#%%
-
 
 #%%
 
@@ -122,9 +117,6 @@ with open('regression_best_params.json') as json_file:
     reg_best_params = json.load(json_file)
 
 #%%
-        
-
-
 model = XGBRegressor(**reg_best_params
                        ,tree_method='gpu_hist', gpu_id = 0
                        ,random_state = 42
@@ -145,12 +137,6 @@ if hyper_param_tune == True:
                           , random_state=42
                           , n_jobs=-1
                           )
-
-
-
-
-
-
 
 #Fit model
 #%%
