@@ -13,6 +13,7 @@ http://localhost:45513/predictions
   - The app also uses the address to find latitude and longitude (inputs for the model). Searching for the same address breaks this.
 - Any current data entered, creates live updates to the predicted sales price at the bottom.
 - Current model uses the XGBoost algorithm and has and RMSE of ~40k
+- Plans to include more features and switch to keras neural net
 ![prediction](https://user-images.githubusercontent.com/69488704/126915459-0310f600-bfa9-4841-884d-77388d4145c9.png)
 
 ## Update/Scraper 
