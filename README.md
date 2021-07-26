@@ -18,5 +18,5 @@ http://localhost:45513/predictions
 ## Update/Scraper 
 http://localhost:45513/update
 - Ability to scrape both sales data and MLS data.
-- Scraping MLS data is very slow
+- Scraping MLS data is very slow (~ 1-2 seconds per address)
 ![update](https://user-images.githubusercontent.com/69488704/126915563-81e29f08-aa2d-4587-8654-e39992debfe2.png)
