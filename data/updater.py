@@ -99,7 +99,7 @@ class RedfinData():
         combined_sales = combined_sales.reset_index(drop=True).sort_values('DAYS ON MARKET', ascending=False).drop_duplicates([
             'SOLD DATE', 'ADDRESS', 'PROPERTY TYPE', 'SALE TYPE', 'PRICE'])
 
-        combined_sales.to_csv(os.path.join(self.dir, 'Sales_Data.csv'))
+        combined_sales.to_csv(os.path.join(self.dir, 'Sales_Data.csv'), index=False)
         self.sales_data = combined_sales.copy()
 
     def update_mls_data(self):

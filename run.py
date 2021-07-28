@@ -1,4 +1,5 @@
 # Imports from 3rd party libraries
+import os, sys
 import dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -13,6 +14,8 @@ from pages import index, predictions, update
 #if sys.executable.endswith("pythonw.exe"):
 #  sys.stdout = open(os.devnull, "w")
 #  sys.stderr = open(os.path.join(os.getenv("TEMP"), "stderr-"+os.path.basename(sys.argv[0])), "w")
+
+os.chdir(os.path.dirname(sys.argv[0]))
 
 # Navbar docs: https://dash-bootstrap-components.opensource.faculty.ai/l/components/navbar
 navbar = dbc.NavbarSimple(
@@ -82,4 +85,4 @@ def display_page(pathname):
 
 # Run app server: https://dash.plot.ly/getting-started
 if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', port =8080, debug=True)
+    app.run_server(host='0.0.0.0', port =45513, debug=False)
