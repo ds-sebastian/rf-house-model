@@ -8,7 +8,7 @@ import json
 import requests
 from geopy.geocoders import Nominatim
 import re
-from data.functions.selenium_funcs import mls_parse
+from data.functions.selenium_funcs import RedfinScraper
 from data.functions.cleaning import mls_clean, merge_data
 from datetime import date
 from time import mktime
@@ -186,7 +186,7 @@ def update_data_pull(n_clicks, query):
         response.raise_for_status()
         text = response.text
 
-        clean_mls_data = mls_clean(mls_parse(url, text))
+        clean_mls_data = mls_clean(RedfinScraper.mls_parse(url, text))
 
         clean_mls_data.insert(0, 'LONGITUDE', [longitude])
         clean_mls_data.insert(0, 'LATITUDE', [latitude])

@@ -129,8 +129,8 @@ class RedfinData():
 
         for url in tqdm(urls):
             try:
-                mls_parse = scraper.MLS_Data(url)
-                mls_data = pd.concat([mls_data, mls_parse])
+                mls_parsed = scraper.MLS_Data(url)
+                mls_data = pd.concat([mls_data, mls_parsed])
 
             except:
                 pass
