@@ -139,8 +139,6 @@ def mls_clean(mls_data):
     mls_data.loc[(mls_data['PARKING_TYPE'].str.contains('ATTACHED')) & (~mls_data['PARKING_TYPE'].isna()), 'PARKING_TYPE'] = 'ATTACHED'
     mls_data.loc[(mls_data['PARKING_TYPE'].str.contains('DETACHED')) & (~mls_data['PARKING_TYPE'].isna()), 'PARKING_TYPE'] = 'FINISHED'
     mls_data.loc[(mls_data['PARKING_TYPE'].str.contains('BASEMENT')) & (~mls_data['PARKING_TYPE'].isna()), 'PARKING_TYPE'] = 'UNFINISHED'
-    mls_data = mls_data.convert_dtypes()
-
 
     #BASEMENT_TYPE_CODE cleaning
     mls_data.loc[(mls_data['BASEMENT_TYPE_CODE'].str.contains('PARTIAL')) & (~mls_data['BASEMENT_TYPE_CODE'].isna()), 'BASEMENT_TYPE_CODE'] = 'PARTIAL'

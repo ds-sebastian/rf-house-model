@@ -169,9 +169,9 @@ def update_data_pull(n_clicks, query):
             'https://redfin.com/stingray/do/location-autocomplete', params={'location': query, 'v': 2}, headers=user_agent_header)
         response = json.loads(response.text[4:])
 
-        geo = geolocator.geocode(query)
-        latitude = geo.raw.get("lat")
-        longitude = geo.raw.get("lon")
+        #geo = geolocator.geocode(query)
+        latitude = 35.541698 #geo.raw.get("lat")
+        longitude = -78.633759 #geo.raw.get("lon")
 
         try:
             url = response['payload']['exactMatch']['url']
