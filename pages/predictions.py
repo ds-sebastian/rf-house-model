@@ -17,6 +17,11 @@ from joblib import load
 from data.functions.ml_functions import get_feature_names, get_feature_out, get_ct_feature_names
 import pandas as pd
 import numpy as np
+
+
+preprocessor = load('preprocessor.joblib')
+model = load('model.joblib')
+
 #%%
 now = dt.datetime.now()
 
@@ -169,9 +174,11 @@ def update_data_pull(n_clicks, query):
         response = requests.get(
             'https://redfin.com/stingray/do/location-autocomplete', params={'location': query, 'v': 2}, headers=user_agent_header)
         response = json.loads(response.text[4:])
-        geo = geolocator.geocode(query)
-        latitude = geo.raw.get("lat")
-        longitude = geo.raw.get("lon")
+        print(response)
+
+        #geo = geolocator.geocode(query)
+        latitude = 35  # = geo.raw.get("lat")
+        longitude = 35  # = geo.raw.get("lon")
 
         try:
             url = response['payload']['exactMatch']['url']
@@ -187,6 +194,8 @@ def update_data_pull(n_clicks, query):
         text = response.text
 
         clean_mls_data = mls_clean(RedfinScraper.mls_parse(url, text))
+
+        print(clean_mls_data.columns)
 
         clean_mls_data.insert(0, 'LONGITUDE', [longitude])
         clean_mls_data.insert(0, 'LATITUDE', [latitude])
@@ -215,6 +224,7 @@ def update_data_pull(n_clicks, query):
 def create_dataset(property_type, bed, bath, sqft, lot_size, market_days, year_built, hoa_month, mls_data):
 
     mls_data = pd.read_json(mls_data, orient='split').convert_dtypes()
+
 
     today = date.today()
     unixtime = mktime(today.timetuple())
@@ -258,12 +268,12 @@ def create_dataset(property_type, bed, bath, sqft, lot_size, market_days, year_b
                 'GARAGE_CODE': 'O', 'NUMBER_OF_BUILDINGS': 'float64', 'PARENTRATING': 'float64',
                 'SCHOOLDISANCE': 'float64', 'SERVESHOME': 'float64', 'NUMBEROFSTUDENTS': 'float64',
                 'SCHOOL_SCORE': 'float64', 'STUDENT_TEACHER_RATIO': 'float64', 'REVIEW_NUMS': 'float64',
-                'TAXABLELANDVALUE': 'float64', 'TAXABLEIMPROVEMENTVALUE': 'float64', 'ROLLYEAR': 'float64', 'TAXESDUE': 'float64'}
+                'TAXABLELANDVALUE': 'float64', 'TAXABLEIMPROVEMENTVALUE': 'float64', 'ROLLYEAR': 'float64', 
+                'TAXESDUE': 'float64', 'NUMBER_OF_FIREPLACES': 'float64', 'STYLE_CODE': 'O', 'BASEMENT_TYPE_CODE': 'O',
+                'BUILDING_CODE': 'O'
+                }
 
-    X = X.astype(dtypemap).replace({pd.NA: np.nan})
-
-    preprocessor = load('preprocessor.joblib')
-    model = load('model.joblib')
+    X = X.astype(dtypemap).replace({pd.NA: np.nan})  # 
 
     predict = preprocessor.transform(X)
 

@@ -1,6 +1,6 @@
 import dash
 import dash_bootstrap_components as dbc
-from data.updater import RedfinData
+#from data.updater import RedfinData
 
 external_stylesheets = [
     dbc.themes.LITERA, # Bootswatch theme

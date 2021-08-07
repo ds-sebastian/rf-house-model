@@ -20,7 +20,7 @@ from sklearn.pipeline import Pipeline
 from scipy.stats import randint, uniform
 from joblib import load
 from data.functions.ml_functions import get_feature_names, get_feature_out, get_ct_feature_names
-from data.functions.selenium_funcs import RedfinScraper
+#from data.functions.selenium_funcs import RedfinScraper
 #Tune hyper paramters?
 hyper_param_tune = False
 #%%%
@@ -36,10 +36,10 @@ categorical_features = ['PROPERTY TYPE',
                 'HEATING_TYPE_CODE',
                 'EXTERIOR_WALL_CODE', 
                 'ROOF_TYPE_CODE', 
-                'GARAGE_CODE',
-                #'MUNICIPALITY_NAME', 
-                #'ZONING_CODE', 
-                #'COUNTY_USE_DESCRIPTION', 
+                'PARKING_TYPE',
+                'STYLE_CODE', 
+                'BASEMENT_TYPE_CODE', 
+                'BUILDING_CODE'
                 ]
 
 

@@ -25,9 +25,8 @@ column1 = dbc.Col(
         ),
         dcc.Link(dbc.Button('Predictions', color='primary'), href='/predictions'),
         
-        dcc.Link(dbc.Button('Update Data', color='secondary'), href='/update'),
-        
-        #dcc.Link(dbc.Button('Log New Data', color='warning'), href='/logdata')
+        #dcc.Link(dbc.Button('Update Data', color='secondary'), href='/update'),
+
     ],
     md=4,
 )

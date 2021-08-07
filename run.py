@@ -8,14 +8,13 @@ from dash.dependencies import Input, Output
 
 # Imports from this application
 from app import app, server
-from pages import index, predictions, update
+from pages import index, predictions
 
-#import sys, os
-#if sys.executable.endswith("pythonw.exe"):
-#  sys.stdout = open(os.devnull, "w")
-#  sys.stderr = open(os.path.join(os.getenv("TEMP"), "stderr-"+os.path.basename(sys.argv[0])), "w")
+if sys.executable.endswith("pythonw.exe"):
+  sys.stdout = open(os.devnull, "w")
+  sys.stderr = open(os.path.join(os.getenv("TEMP"), "stderr-"+os.path.basename(sys.argv[0])), "w")
 
-os.chdir(os.path.dirname(sys.argv[0]))
+#os.chdir(os.path.dirname(__file__))
 
 # Navbar docs: https://dash-bootstrap-components.opensource.faculty.ai/l/components/navbar
 navbar = dbc.NavbarSimple(
@@ -23,9 +22,7 @@ navbar = dbc.NavbarSimple(
     brand_href='/', 
     children=[
         dbc.NavItem(dcc.Link('Predictions', href='/predictions', className='nav-link')), 
-        dbc.NavItem(dcc.Link('Update Data', href='/update', className='nav-link')), 
-        #dbc.NavItem(dcc.Link('History', href='/history', className='nav-link')), 
-        #dbc.NavItem(html.A('Log Data', href='/logdata', className='nav-link')), #html.A refreshes
+        #dbc.NavItem(dcc.Link('Update Data', href='/update', className='nav-link')), 
     ],
     sticky='top',
     color='primary', 
@@ -78,11 +75,11 @@ def display_page(pathname):
         return index.layout
     elif pathname == '/predictions':
         return predictions.layout
-    elif pathname == '/update':
-        return update.layout
+    #elif pathname == '/update':
+    #    return update.layout
     else:
         return dcc.Markdown('## Page not found')
 
 # Run app server: https://dash.plot.ly/getting-started
 if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', port =45513, debug=False)
+    app.run_server(host='0.0.0.0', port =53241, debug=True)
