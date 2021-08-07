@@ -82,4 +82,4 @@ def display_page(pathname):
 
 # Run app server: https://dash.plot.ly/getting-started
 if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', port =53241, debug=True)
+    app.run_server(host='0.0.0.0', port =53241, debug=False)

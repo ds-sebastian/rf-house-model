@@ -3,7 +3,6 @@ from dash.dependencies import Output, Input, State
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
-import datetime as dt
 import json
 import requests
 from geopy.geocoders import Nominatim
@@ -19,15 +18,10 @@ import pandas as pd
 import numpy as np
 
 
-preprocessor = load('preprocessor.joblib')
-model = load('model.joblib')
-
 #%%
-now = dt.datetime.now()
-
 table_header_width = 3
 
-mls_data = dcc.Store(id='mls_data', storage_type='session')
+mls_data = dcc.Store(id='mls_data') #, storage_type='session'
 
 property_type = dbc.FormGroup(
     [
@@ -220,10 +214,11 @@ def update_data_pull(n_clicks, query):
               ])
 def create_dataset(property_type, bed, bath, sqft, lot_size, market_days, year_built, hoa_month, mls_data):
 
-    mls_data = pd.read_json(mls_data, orient='split').convert_dtypes()
-
-
+    preprocessor = load('preprocessor.joblib')
+    model = load('model.joblib')
     today = date.today()
+
+    mls_data = pd.read_json(mls_data, orient='split').convert_dtypes()
     unixtime = mktime(today.timetuple())
 
     try:
