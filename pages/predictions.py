@@ -174,11 +174,10 @@ def update_data_pull(n_clicks, query):
         response = requests.get(
             'https://redfin.com/stingray/do/location-autocomplete', params={'location': query, 'v': 2}, headers=user_agent_header)
         response = json.loads(response.text[4:])
-        print(response)
 
-        #geo = geolocator.geocode(query)
-        latitude = 35  # = geo.raw.get("lat")
-        longitude = 35  # = geo.raw.get("lon")
+        geo = geolocator.geocode(query)
+        latitude = geo.raw.get("lat")
+        longitude = geo.raw.get("lon")
 
         try:
             url = response['payload']['exactMatch']['url']
@@ -194,8 +193,6 @@ def update_data_pull(n_clicks, query):
         text = response.text
 
         clean_mls_data = mls_clean(RedfinScraper.mls_parse(url, text))
-
-        print(clean_mls_data.columns)
 
         clean_mls_data.insert(0, 'LONGITUDE', [longitude])
         clean_mls_data.insert(0, 'LATITUDE', [latitude])
@@ -250,6 +247,9 @@ def create_dataset(property_type, bed, bath, sqft, lot_size, market_days, year_b
          'URL': mls_data['URL'].iloc[0],
          'LATITUDE': mls_data['LATITUDE'].iloc[0],
          'LONGITUDE': mls_data['LONGITUDE'].iloc[0],
+         'SOLD_YEAR': today.year,
+         'SOLD_MONTH': today.month,
+         'SOLD_DAY': today.day,
          'DATE SOLD_UNIX': unixtime,
          'AGE': age}, index=[0]).convert_dtypes()
 
@@ -265,7 +265,7 @@ def create_dataset(property_type, bed, bath, sqft, lot_size, market_days, year_b
                 'HEATING_TYPE_CODE': 'O', 'EXTERIOR_WALL_CODE': 'O', 'ROOF_TYPE_CODE': 'O',
                 'ASSESSED_YEAR': 'float64', 'LIVING_SQUARE_FEET': 'float64',
                 'BUILDING_SQUARE_FEET': 'float64', 'GARAGE_PARKING_SQUARE_FEET': 'float64',
-                'GARAGE_CODE': 'O', 'NUMBER_OF_BUILDINGS': 'float64', 'PARENTRATING': 'float64',
+                'PARKING_TYPE': 'O', 'NUMBER_OF_BUILDINGS': 'float64', 'PARENTRATING': 'float64',
                 'SCHOOLDISANCE': 'float64', 'SERVESHOME': 'float64', 'NUMBEROFSTUDENTS': 'float64',
                 'SCHOOL_SCORE': 'float64', 'STUDENT_TEACHER_RATIO': 'float64', 'REVIEW_NUMS': 'float64',
                 'TAXABLELANDVALUE': 'float64', 'TAXABLEIMPROVEMENTVALUE': 'float64', 'ROLLYEAR': 'float64', 
