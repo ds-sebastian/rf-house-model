@@ -25,6 +25,7 @@ class RedfinData():
 
         #Current Directory
         self.dir = os.path.dirname(__file__)
+        print(f'Dir set to: {self.dir}')
 
         self.logged_in = False
 
@@ -119,21 +120,26 @@ class RedfinData():
         #Initialize Variables
         sales_data = self.sales_data.copy()
         mls_data = self.mls_data.copy()
-        mls_data = mls_data.loc[mls_data.count(1)[::-1].groupby(mls_data['url'][::-1]).idxmax()]
-        
         urls = sales_data['URL (SEE http://www.redfin.com/buy-a-home/comparative-market-analysis FOR INFO ON PRICING)'].unique()
-        completed = mls_data.dropna(how='all', subset=list(
-            mls_data.columns)[1:], inplace=False)['url'].unique()
 
-        urls = list(set(urls)-set(completed))  # Unscraped urls
+        if 'url' in mls_data.columns:
+            mls_data = mls_data.loc[mls_data.count(1)[::-1].groupby(mls_data['url'][::-1]).idxmax()]
+            completed = mls_data.dropna(how='all', subset=list(
+                mls_data.columns)[1:], inplace=False)['url'].unique()
+            urls = list(set(urls)-set(completed))  # Unscraped urls
 
-        for url in tqdm(urls):
-            try:
-                mls_parsed = scraper.MLS_Data(url)
-                mls_data = pd.concat([mls_data, mls_parsed])
+        try: 
+            for url in tqdm(urls):
+                try:
+                    mls_parsed = scraper.MLS_Data(url)
+                    mls_data = pd.concat([mls_data, mls_parsed])
 
-            except:
-                pass
+                except:
+                    logging.debug(f'Error with URL: {url}')
+                    pass
+        except (KeyboardInterrupt, SystemExit):
+            logging.info('Interrupted. Saving Data...')
+
 
         mls_data.drop_duplicates(inplace=True, ignore_index=True)
         mls_data.to_csv(os.path.join(self.dir, 'MLS_Data.csv'),index=False)

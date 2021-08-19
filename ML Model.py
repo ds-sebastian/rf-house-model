@@ -46,7 +46,7 @@ categorical_features = ['PROPERTY TYPE',
 #%%
 #df = df[(pd.to_datetime(df['DATE SOLD_UNIX'], unit='s', origin='unix').dt.year >= 2018)]
 df = df[~df['DATE SOLD_UNIX'].isna()]
-df = df[np.abs(df['PRICE']-df['PRICE'].mean()) <= (3*df['PRICE'].std())]
+df = df[np.abs(df['PRICE']-df['PRICE'].mean()) <= (5*df['PRICE'].std())]
 #df = df[df['PRICE'] < 10000000]
 #df = df[df['PRICE'] > 10000]
 
@@ -252,98 +252,3 @@ dump(preprocessor, 'preprocessor.joblib')
 
 
 #%%
-user_agent_list = open(r"G:\DataScience\MortgageCalc\house-model\user-agents.txt", "r").read().splitlines()
-
-redfin_data = mls_parse(r'https://www.redfin.com/NC/Holly-Springs/321-Stone-Hedge-Ct-27540/home/41232040', user_agent_list)
-
-redfin_data = redfin_data[[
-#'url',
-'numStories',
-'yearRenovated',
-'sqFtFinished',
-'totalSqFt',
-'lotSqFt',
-#'propertyLastUpdatedDate',
-'FULL_BATHS',
-'AIR_CONDITIONING_CODE', #
-'FUEL_CODE', #
-'HEATING_TYPE_CODE',#
-'EXTERIOR_WALL_CODE', #
-'ROOF_TYPE_CODE', #
-'ASSESSED_YEAR',
-#'SUBDIVISION_NAME', #
-'LIVING_SQUARE_FEET',
-'BUILDING_SQUARE_FEET',
-'GARAGE_PARKING_SQUARE_FEET',
-'GARAGE_CODE',
-'NUMBER_OF_BUILDINGS',
-'LAND_SQUARE_FOOTAGE',
-'MUNICIPALITY_NAME', #
-'ACRES',
-'ZONING_CODE', #
-'COUNTY_USE_DESCRIPTION', #
-'parentRating',
-'schooldisance',
-'servesHome',
-'schoolchoice',
-'numberOfStudents',
-'school_score',
-'student_teacher_ratio',
-'review_nums',
-'taxableLandValue',
-'taxableImprovementValue',
-'rollYear',
-'taxesDue']]
-#%%
-
-predict = pd.DataFrame({'Unnamed: 0': 9999 ,
-'SOLD DATE': '2021-07-01' ,
-'PROPERTY TYPE': 'Single Family Residential' ,
-'CITY': 'HOLLY SPRINGS' ,
-'STATE OR PROVINCE': 'NC' ,
-'ZIP OR POSTAL CODE': 27540 ,
-'PRICE': 0 ,
-'BEDS': 3 ,
-'BATHS': 2.5 ,
-'SQUARE FEET': 1772 ,
-'LOT SIZE': 6098 ,
-'YEAR BUILT': 1998 ,
-'DAYS ON MARKET': 1 ,
-'HOA/MONTH': 33,
-'LATITUDE': 35.656310 ,
-'LONGITUDE': -78.840714 ,
-'Sold Year': 2021 ,
-'Age': 23
-}, index=[0]).convert_dtypes()
-
-
-#%%
-
-predict = pd.concat([predict,redfin_data], axis =1)
-predict = predict.replace(',','', regex=True).convert_dtypes()
-
-#%%
-predict['DATE SOLD_UNIX'] = (pd.to_datetime(predict['SOLD DATE']) - pd.Timestamp("1970-01-01")) // pd.Timedelta('1s') #76
-#predict['kmn_cluster'] = kmeans.predict(predict[['LATITUDE','LONGITUDE']])
-#predict['is_Pandemic'] = True
-#predict['is_CY'] = True
-#%%
-predict.drop(['Sold Year','SOLD DATE', 'STATE OR PROVINCE', 'Unnamed: 0','ZIP OR POSTAL CODE', 'CITY', 'YEAR BUILT', 'MUNICIPALITY_NAME', 'ZONING_CODE' ], axis=1, inplace=True)
-#predict.drop(['CITY'], axis=1, inplace=True)
-predict.drop(columns=['PRICE'], inplace=True)
-#predict['ZIP OR POSTAL CODE'] = predict['ZIP OR POSTAL CODE'].astype(str).str[:3].astype(int)
-
-#%%
-
-try:
-    predict = pd.DataFrame.sparse.from_spmatrix(preprocessor.transform(predict), columns = get_feature_names(preprocessor))
-except:
-    predict = pd.DataFrame(preprocessor.transform(predict), columns = get_feature_names(preprocessor))
-
-final_prediction = np.exp(model.predict(predict))
-
-print('Predicted Sales Price:', final_prediction)
-# %%
-
-# %%
-
