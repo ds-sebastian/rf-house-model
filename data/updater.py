@@ -57,16 +57,30 @@ class RedfinData():
 
     def update_sales_data(self):
         '''Scrapes all sold homes in the last 5 years and combines with current data'''
-        logging.info('Scraping Sales Data')
 
-        #Save Backup
+        current_sales_data = self.sales_data.copy()
+
+        logging.info('Saving Sales Data Backup')
         backup_name = 'Sales_Data-' + \
             str(dt.datetime.now().strftime('%m-%d-%Y')) + \
             '_'+str(randrange(1, 99999))+'.csv'
-        self.sales_data.to_csv(os.path.join(self.dir, 'backup', backup_name),index=False)
+        current_sales_data.to_csv(os.path.join(self.dir, 'backup', backup_name),index=False)
 
+        logging.info('Clearing data files folder...')
+        for filename in os.listdir(os.path.join(self.dir, 'data_files')):
+            file_path = os.path.join(os.path.join(self.dir, 'data_files'), filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+            except Exception as e:
+                print('Failed to delete %s. Reason: %s' % (file_path, e))
+
+        logging.info('Clearing data files folder')
         lead = self.zipcodes
 
+        logging.info('Scraping Sales Data')
         self.redfin_login()
         scraper = self.scraper
 
@@ -88,15 +102,17 @@ class RedfinData():
                 logging.debug('Records: %(records)s, Sold: %(sold)s', {
                               'records': records, 'sold': sold})
 
+        logging.info('Moving Data files to folder')
         for file_name in filename_list:
             shutil.move(os.path.join(self.dir, file_name),
                         os.path.join(self.dir, 'data_files'))
 
-        #Usin
+
+
         files = [file for file in glob.glob(
             os.path.join(self.dir, 'data_files', '*')+'.csv')]
 
-        combined_sales = pd.concat([pd.read_csv(f) for f in files])
+        combined_sales = pd.concat([pd.read_csv(f) for f in files]+[current_sales_data])
         combined_sales = combined_sales.reset_index(drop=True).sort_values('DAYS ON MARKET', ascending=False).drop_duplicates([
             'SOLD DATE', 'ADDRESS', 'PROPERTY TYPE', 'SALE TYPE', 'PRICE'])
 
@@ -149,6 +165,7 @@ class RedfinData():
         '''Cleans and combines the mls data and the sales data for model development'''
         logging.info('Cleaning Model Data')
 
+        logging.info('Saving MLS Data Backup')
         #Save Backup
         backup_name = 'Model_Data-' + \
             str(dt.datetime.now().strftime('%m-%d-%Y')) + \
@@ -169,7 +186,7 @@ class RedfinData():
         '''runs through all updates'''
         self.update_sales_data()
         self.update_mls_data()
-        self.update_mls_data()
+        self.update_model_data()
 
     def exit_browser(self):
         '''quits all browsers'''
