@@ -26,7 +26,7 @@ def sales_clean(sales_data):
     sales_data['AGE'] = sales_data['SOLD DATE'].apply(
         lambda x: x.year)-sales_data['YEAR BUILT']
     # Zip simplify
-    sales_data['ZIP OR POSTAL CODE'] = sales_data['ZIP OR POSTAL CODE'].str[:5]
+    sales_data['ZIP OR POSTAL CODE'] = sales_data['ZIP OR POSTAL CODE'].astype(str).str[:5]
     # Remove other property types
     sales_data_types = ['UNKNOWN', 'OTHER', 'RANCH', 'PARKING', 'VACANT LAND', 'MOBILE/MANUFACTURED HOME']
     sales_data = sales_data.loc[~sales_data["PROPERTY TYPE"].isin(sales_data_types)]

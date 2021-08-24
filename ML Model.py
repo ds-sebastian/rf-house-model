@@ -139,7 +139,9 @@ if hyper_param_tune == True:
 # %%
 eval_set = [(X_train, y_train), (X_test, y_test)]
 #
-model.fit(X_train, y_train, verbose=5, eval_metric="rmse", eval_set=eval_set, early_stopping_rounds=300
+model.fit(X_train, y_train
+            #, verbose=5
+            #, eval_metric="rmse", eval_set=eval_set, early_stopping_rounds=300
           )
 
 # %%
