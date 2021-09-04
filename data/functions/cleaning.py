@@ -158,13 +158,18 @@ def merge_data(clean_sales_data, clean_mls_data):
         clean_sales_data, clean_mls_data, on='URL', how='left')
     model_data = model_data.replace(',', '', regex=True)
     model_data.drop_duplicates(inplace=True, ignore_index=True)
+    
     # sqft_house: if SQUARE FEET is null then max(sqFtFinished, totalSqFt)
     model_data['SQUARE FEET'].fillna(model_data[['SQFTFINISHED','TOTALSQFT']].max(axis=1), inplace=True)
     model_data.drop(['SQFTFINISHED','TOTALSQFT'], axis=1, inplace=True)
+    
     # sqft_lot: if LOT SIZE is null then lotSqFt
     model_data['LOT SIZE'].fillna(model_data[['LOTSQFT']].max(axis=1), inplace=True)
     model_data.drop(['LOTSQFT'], axis=1, inplace=True)
+    
     # baths: if BATHS in null, FULL_BATHS+0.5*HALF_BATHS
+    model_data['HALF_BATHS'] = pd.to_numeric(model_data['HALF_BATHS'], errors='coerce')
+    model_data['HALF_BATHS'] = model_data['HALF_BATHS'].replace(np.nan, 0)
     model_data['BATHS'].fillna(model_data['FULL_BATHS']+0.5*model_data['HALF_BATHS'], inplace=True)
     model_data.drop(['FULL_BATHS','HALF_BATHS'], axis=1, inplace=True)
     model_data.drop(['STATE OR PROVINCE', 'ZIP OR POSTAL CODE','CITY', 'URL', 'SOLD DATE'], axis=1, inplace=True)
