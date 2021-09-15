@@ -8,14 +8,21 @@
 - ```python run.py``` to start the webapp. Access through http://localhost:45513/
 
 ## Predictions 
-http://localhost:45513/predictions
+http://localhost:{port}/predictions
 - MLS Data is pulled through searching Redfin using the 'Search Redfin' Button. Do not spam or a ban might occur.
   - The app also uses the address to find latitude and longitude (inputs for the model). Searching for the same address breaks this.
 - Any current data entered, creates live updates to the predicted sales price at the bottom.
-- Current model uses the XGBoost algorithm and has and RMSE of ~40k
-- Plans to include more features and switch to keras neural net
+- Current model uses the XGBoost algorithm and has and RMSE of ~45k
+- Model is built in `ml-model.py` and saved as `.joblib` files for use in the predictions.
+
 ![prediction](https://user-images.githubusercontent.com/69488704/133361078-69bae561-9f20-4443-9f67-0f7978c47bd7.png)
 
 ## Update/Scraper 
-- Ability to scrape both sales data and MLS data.
-- Scraping MLS data is very slow (~ 1-2 seconds per address)
+- To update the data navigate to /data and run `python updater.py`
+- Options will appear to scrape both sales data, MLS data, and Model (combined) data.
+- NOTE: Scraping MLS data is very slow (~ 1-2 seconds per address)
+
+
+## Future Plans
+- Include more features and switch to neural network
+- List Prices would significantly improve the model
