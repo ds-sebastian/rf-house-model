@@ -1,7 +1,7 @@
 
 # rf-house-model
  Real Estate ML Model with Redfin Data Scraper
-![index](https://user-images.githubusercontent.com/69488704/126915391-1bd87d88-694f-4166-9210-8b80c9300bb3.png)
+![index](https://user-images.githubusercontent.com/69488704/133361015-56825aa8-8949-45fa-80c5-d6627b640af2.png)
 ## Getting Started
 - Must fill-in username in password in data/resources/redfin_login.py
 - Create zipcodes.csv in data/resources with headers as [Region, City, Zip Code], Zip Code being the main values for the scraper.
@@ -14,10 +14,8 @@ http://localhost:45513/predictions
 - Any current data entered, creates live updates to the predicted sales price at the bottom.
 - Current model uses the XGBoost algorithm and has and RMSE of ~40k
 - Plans to include more features and switch to keras neural net
-![prediction](https://user-images.githubusercontent.com/69488704/126915459-0310f600-bfa9-4841-884d-77388d4145c9.png)
+![prediction](https://user-images.githubusercontent.com/69488704/133361078-69bae561-9f20-4443-9f67-0f7978c47bd7.png)
 
 ## Update/Scraper 
-http://localhost:45513/update
 - Ability to scrape both sales data and MLS data.
 - Scraping MLS data is very slow (~ 1-2 seconds per address)
-![update](https://user-images.githubusercontent.com/69488704/126915563-81e29f08-aa2d-4587-8654-e39992debfe2.png)
