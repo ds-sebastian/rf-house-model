@@ -1,6 +1,6 @@
 
 # rf-house-model
- Real Estate ML Model with Redfin Data Scraper
+## Real Estate ML Model with Redfin Data Scraper
 ![index](https://user-images.githubusercontent.com/69488704/133361015-56825aa8-8949-45fa-80c5-d6627b640af2.png)
 ## Getting Started
 - Must fill-in username in password in data/resources/redfin_login.py
